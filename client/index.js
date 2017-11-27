@@ -11,5 +11,5 @@ if (module.hot) {
     render(<AppContainer>
       <App/>
     </AppContainer>, document.getElementById('root'));
-  })
+  });
 }

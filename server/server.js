@@ -2,36 +2,33 @@ import express from 'express';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import App from '../common/App';
+import getPixels from 'get-pixels';
+import {get} from 'lodash';
+import {makeTwoDimentionalMap} from '../lib';
 
 const fileUpload = require('express-fileupload');
 const app = express();
 
-app.get('/api', (req, res) => {
-  res.send({
-    message: 'I am a server route and can also be hot reloaded!'
-  })
-});
+app.use(fileUpload());
 
-app.post('/upload', function(req, res) {
-  if (!req.files)
+
+app.post('/api/map', function(req, res) {
+  const file = get(req, 'files.image', false);
+  const mimetype = get(file, 'mimetype', 'image/png');
+  if (!file)
     return res.status(400).send('No files were uploaded.');
 
-  // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
-  // let sampleFile = req.files.sampleFile;
+  getPixels(file.data, mimetype, function(err, pixels) {
+    if(err) {
+      return res.status(500).send(err.toString());
+    }
 
-  console.log(req.files);
-  res.send({
-    message: 'File uploaded!'
+    return res.send({
+      message: 'File uploaded!',
+      imageMap: makeTwoDimentionalMap(pixels),
+      dimensions: {width: get(pixels, 'shape[0]', 0), height: get(pixels, 'shape[1]', 0)}
+    });
   });
-  // Use the mv() method to place the file somewhere on your server
-  // sampleFile.mv('/somewhere/on/your/server/filename.jpg', function(err) {
-  //   if (err)
-  //     return res.status(500).send(err);
-  //
-  //   res.send({
-  //     message: 'File uploaded!'
-  //   });
-  // });
 });
 
 app.get('*', (req,res) => {
