@@ -17,7 +17,7 @@ class App extends Component {
         <input type="submit" name={'submit'} value={'Send'}/>
       </form>
       {(size(this.state.imageMap) && <svg style={{height: this.state.dimensions.height, width: this.state.dimensions.width}}>
-        {this.state.imageMap.map(({rgba,x,y}, index) => <circle fill={`rgba(${rgba})`} r="1" cx={x} cy={y} key={index} />)}
+        {this.state.imageMap.map(([r, g, b, a, y, x], index) => <circle fill={`rgba(${r},${g},${b},${a})`} r="1" cx={x} cy={y} key={index} />)}
       </svg>) || <div>No data yet</div>}
     </div>;
   }
@@ -30,7 +30,10 @@ class App extends Component {
       body: new FormData(event.currentTarget)
     })
       .then(r => r.json())
-      .then(({imageMap, dimensions}) => this.setState({imageMap, dimensions}))
+      .then(({simplifyMapByColors, dimensions}) => {
+        console.log(simplifyMapByColors);
+        // this.setState({imageMap, dimensions});
+      })
       .catch(console.warn);
   }
 }

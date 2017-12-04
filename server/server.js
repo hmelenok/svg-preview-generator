@@ -4,7 +4,7 @@ import { renderToString } from 'react-dom/server';
 import App from '../common/App';
 import getPixels from 'get-pixels';
 import {get} from 'lodash';
-import {makeTwoDimentionalMap} from '../lib';
+import {simplifyMapByColors,makeTwoDimentionalMap} from '../lib';
 
 const fileUpload = require('express-fileupload');
 const app = express();
@@ -22,10 +22,10 @@ app.post('/api/map', function(req, res) {
     if(err) {
       return res.status(500).send(err.toString());
     }
-
     return res.send({
       message: 'File uploaded!',
-      imageMap: makeTwoDimentionalMap(pixels),
+      // imageIslands: makeColorIslands(makeTwoDimentionalMap(pixels)),
+      simplifyMapByColors: simplifyMapByColors(makeTwoDimentionalMap(pixels)),
       dimensions: {width: get(pixels, 'shape[0]', 0), height: get(pixels, 'shape[1]', 0)}
     });
   });
