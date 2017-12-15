@@ -6,7 +6,8 @@ class App extends Component {
     super(props);
     this.state = {
       imageMap: [],
-      dimensions: {width: 0, height: 0}
+      dimensions: {width: 0, height: 0},
+      colors: []
     };
   }
 
@@ -16,9 +17,22 @@ class App extends Component {
         <input type="file" name={'image'}/>
         <input type="submit" name={'submit'} value={'Send'}/>
       </form>
-      {(size(this.state.imageMap) && <svg style={{height: this.state.dimensions.height, width: this.state.dimensions.width}}>
-        {this.state.imageMap.map(([r, g, b, a, y, x], index) => <circle fill={`rgba(${r},${g},${b},${a})`} r="1" cx={x} cy={y} key={index} />)}
-      </svg>) || <div>No data yet</div>}
+      {(size(this.state.colors) &&
+        <svg style={{height: this.state.dimensions.height, width: this.state.dimensions.width}}>
+          {/*{this.state.imageMap.map(([r, g, b, a, y, x], index) => <circle fill={`rgba(${r},${g},${b},${a})`} r="1" cx={x} cy={y} key={index} />)}*/}
+          {this.state.colors
+            .map(({color, items}, topIndex) => {
+              return (items
+                .filter(([y, x, status = false]) => !status)
+                .map(([y, x], index) =>
+                  <circle
+                    key={index}
+                    fill={`rgba(${color})`}
+                    r="1"
+                    cx={x}
+                    cy={y}/>))
+            })}
+        </svg>) || <div>No data yet</div>}
     </div>;
   }
 
@@ -30,9 +44,15 @@ class App extends Component {
       body: new FormData(event.currentTarget)
     })
       .then(r => r.json())
-      .then(({simplifyMapByColors, dimensions}) => {
-        console.log(simplifyMapByColors);
-        // this.setState({imageMap, dimensions});
+      .then(({simplifyMapByColors: {colors}, dimensions}) => {
+        this.setState({colors, dimensions});
+        console.log(this.state.colors//,
+          // this.state.colors
+          // .map(({color, items}, topIndex) => {
+          //   return (items
+          //     .filter(([y, x, status]) => status !== 'skipped'))
+          // })
+        );
       })
       .catch(console.warn);
   }
