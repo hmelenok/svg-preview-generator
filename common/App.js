@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {size} from 'lodash';
+import {chunk, size, get} from 'lodash';
 
 class App extends Component {
   constructor(props) {
@@ -19,11 +19,11 @@ class App extends Component {
       </form>
       {(size(this.state.colors) &&
         <svg style={{height: this.state.dimensions.height, width: this.state.dimensions.width}}>
-          {/*{this.state.imageMap.map(([r, g, b, a, y, x], index) => <circle fill={`rgba(${r},${g},${b},${a})`} r="1" cx={x} cy={y} key={index} />)}*/}
+
           {this.state.colors
             .map(({color, items}, topIndex) => {
               return (items
-                .filter(([y, x, status = false]) => !status)
+                .filter(([y, x, status = false]) => status === "alone")
                 .map(([y, x], index) =>
                   <circle
                     key={index}
@@ -31,6 +31,25 @@ class App extends Component {
                     r="1"
                     cx={x}
                     cy={y}/>))
+            })}
+          {size(this.state.polylines) && this.state.polylines
+            .map((topArray, index) => {
+              const arr =  get(topArray, '0', '');
+              const startPoint = get(arr, '0', '');
+              const endPoint = get(arr, '1', '');
+              const color = get(arr, '0.3', '');
+
+              const startPointX = startPoint[1];
+              const endPointX = endPoint[1];
+              const startPointy = startPoint[0];
+              const endPointy = endPoint[0];
+              return (<polyline
+                key={index}
+                fill="none"
+                stroke={`rgba(${color})`}
+                points={`${startPointX},${startPointy} ${endPointX},${endPointy}`}>
+
+              </polyline>)
             })}
         </svg>) || <div>No data yet</div>}
     </div>;
@@ -46,13 +65,18 @@ class App extends Component {
       .then(r => r.json())
       .then(({simplifyMapByColors: {colors}, dimensions}) => {
         this.setState({colors, dimensions});
-        console.log(this.state.colors//,
-          // this.state.colors
-          // .map(({color, items}, topIndex) => {
-          //   return (items
-          //     .filter(([y, x, status]) => status !== 'skipped'))
-          // })
-        );
+        this.setState({
+          polylines: colors
+            .map(({color, items}, topIndex) => {
+              return items.map(item => {
+                item[3] = color;
+                return item;
+              }).filter(([y, x, status]) => status === 'start' || status === 'end')
+            })
+            .map(array => chunk(array, 2))
+            .filter(size)
+        });
+        console.log(this.state);
       })
       .catch(console.warn);
   }
